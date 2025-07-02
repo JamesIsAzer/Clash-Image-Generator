@@ -3,6 +3,7 @@ package com.profile.http;
 import static spark.Spark.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.profile.client.ClashApiClient;
 import com.profile.data.Profile;
 import com.profile.render.ProfileImageRenderer;
 
@@ -14,9 +15,9 @@ public class Interface {
     public static void start(int port) {
         port(port);
 
-        post("/render", (req, res) -> {
-            ObjectMapper mapper = new ObjectMapper();
-            Profile profile = mapper.readValue(req.body(), Profile.class);
+        post("/render/profile/:tag", (req, res) -> {
+            String tag = req.params(":tag");
+            Profile profile = ClashApiClient.fetchProfile(tag);
             
             var image = ProfileImageRenderer.render(profile);
 

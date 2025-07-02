@@ -58,7 +58,7 @@ public class ImageManager {
             URL url = new URL(imageUrl);
             return ImageIO.read(url);
         } catch (IOException e) {
-            System.err.println("❌ Failed to load image from URL: " + imageUrl);
+            System.err.println("Failed to load image from URL: " + imageUrl);
             e.printStackTrace();
             return null;
         }
@@ -113,7 +113,7 @@ public class ImageManager {
             try {
                 executor.invokeAll(tasks);
             } catch (Exception e) {
-                System.err.println("❌ Failed to preload batch " + i + "-" + (i + batchSize) + ":");
+                System.err.println("Failed to preload batch " + i + "-" + (i + batchSize) + ":");
                 e.printStackTrace();
             } finally {
                 executor.shutdown();
@@ -137,7 +137,7 @@ public class ImageManager {
                 }
             }
         } catch (IOException | NullPointerException e) {
-            System.err.println("❌ Could not load /cache/images.txt");
+            System.err.println("Could not load /cache/images.txt");
             e.printStackTrace();
         }
         return keys;
