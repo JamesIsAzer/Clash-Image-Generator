@@ -1,0 +1,45 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.sparkjava:spark-core:2.9.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    implementation 'org.slf4j:slf4j-simple:2.0.12'
+}
+
+tasks.register("generateImageIndex") {
+    def imageDirPath = layout.projectDirectory.dir("src/main/resources/images")
+    def indexFilePath = layout.projectDirectory.file("src/main/resources/cache/images.txt")
+
+    inputs.dir(imageDirPath)
+    outputs.file(indexFilePath)
+
+    doLast {
+        def imageDir = imageDirPath.asFile
+        def indexFile = indexFilePath.asFile
+
+        if (!imageDir.exists()) {
+            println "⚠️ Image directory does not exist: ${imageDir}"
+            return
+        }
+
+        def lines = []
+        imageDir.listFiles()?.each { file ->
+            if (file.isFile() && (file.name.endsWith(".png") || file.name.endsWith(".jpg"))) {
+                lines << file.name
+            }
+        }
+
+        indexFile.text = lines.join("\n")
+        println "✅ index.txt generated with ${lines.size()} image(s)."
+    }
+}
+
+application {
+    mainClass = 'com.example.App'
+}

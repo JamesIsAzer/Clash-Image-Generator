@@ -1,0 +1,207 @@
+package com.profile.utils;
+
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.ref.SoftReference;
+import java.util.*;
+import java.util.concurrent.*;
+import java.net.URL;
+
+import javax.imageio.ImageIO;
+
+import java.awt.*;
+import java.util.List;
+
+public class ImageManager {
+
+    private static final int IMAGE_CACHE_LIMIT = 100;
+    private static final int USER_CACHE_TTL_MS = 5 * 60 * 1000;
+    private static final int USER_CACHE_CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
+    private static final int MAX_USERS_IN_CACHE = 50;
+
+    private static final Map<String, SoftReference<BufferedImage>> imageCache = new LinkedHashMap<>(IMAGE_CACHE_LIMIT, 0.75f, true) {
+        protected boolean removeEldestEntry(Map.Entry<String, SoftReference<BufferedImage>> eldest) {
+            return size() > IMAGE_CACHE_LIMIT;
+        }
+    };
+
+    private static boolean imagesPreloaded = false;
+
+    private static final Map<String, Map<String, CacheEntry>> renderCache = new ConcurrentHashMap<>();
+
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    static {
+        scheduler.scheduleAtFixedRate(ImageManager::cleanupUserCaches, USER_CACHE_CLEANUP_INTERVAL_MS, USER_CACHE_CLEANUP_INTERVAL_MS, TimeUnit.MILLISECONDS);
+    }
+
+    public static BufferedImage getCachedImage(String key) {
+        SoftReference<BufferedImage> ref = imageCache.get(key);
+        BufferedImage img = (ref != null) ? ref.get() : null;
+
+        if (img == null) {
+            img = loadImage(key);
+            if (img != null) {
+                imageCache.put(key, new SoftReference<>(img));
+            }
+        }
+
+        return img;
+    }
+
+    public static BufferedImage loadImageFromURL(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            return ImageIO.read(url);
+        } catch (IOException e) {
+            System.err.println("❌ Failed to load image from URL: " + imageUrl);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static BufferedImage loadImage(String key) {
+        try (InputStream is = ImageManager.class.getResourceAsStream("/images/" + key + ".png")) {
+            if (is == null) {
+                System.err.println("Image not found: /images/" + key + ".png");
+                return null;
+            }
+            return ImageIO.read(is);
+        } catch (Exception e) {
+            System.err.println("Failed to load image: " + key);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static synchronized void preloadAllImages() {
+        if (imagesPreloaded) return;
+
+        try {
+            List<String> imageKeys = loadImageKeysFromIndex();
+            preloadImages(imageKeys);
+            imagesPreloaded = true;
+            System.out.println("All troop images preloaded successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to preload some images:");
+            e.printStackTrace();
+        }
+    }
+
+    private static void preloadImages(List<String> imageKeys) throws InterruptedException {
+        Set<String> uniqueKeys = new HashSet<>(imageKeys);
+        List<String> uniqueList = new ArrayList<>(uniqueKeys);
+        int batchSize = 10;
+
+        for (int i = 0; i < uniqueList.size(); i += batchSize) {
+            List<String> batch = uniqueList.subList(i, Math.min(i + batchSize, uniqueList.size()));
+
+            ExecutorService executor = Executors.newFixedThreadPool(batchSize);
+            List<Callable<Void>> tasks = new ArrayList<>();
+
+            for (String key : batch) {
+                tasks.add(() -> {
+                    getCachedImage(key);
+                    return null;
+                });
+            }
+
+            try {
+                executor.invokeAll(tasks);
+            } catch (Exception e) {
+                System.err.println("❌ Failed to preload batch " + i + "-" + (i + batchSize) + ":");
+                e.printStackTrace();
+            } finally {
+                executor.shutdown();
+            }
+
+            // Optional small delay between batches to avoid memory spikes
+            if (i + batchSize < uniqueList.size()) {
+                Thread.sleep(100);
+            }
+        }
+    }
+
+    public static List<String> loadImageKeysFromIndex() {
+        List<String> keys = new ArrayList<>();
+        try (InputStream is = ImageManager.class.getResourceAsStream("/cache/images.txt");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    keys.add(line.replace(".png", "")); // remove extension if you prefer keys only
+                }
+            }
+        } catch (IOException | NullPointerException e) {
+            System.err.println("❌ Could not load /cache/images.txt");
+            e.printStackTrace();
+        }
+        return keys;
+    }
+
+    private static void cleanupUserCaches() {
+        long now = System.currentTimeMillis();
+        for (String userId : new HashSet<>(renderCache.keySet())) {
+            Map<String, CacheEntry> userCache = renderCache.get(userId);
+            userCache.entrySet().removeIf(entry -> entry.getValue().expiresAt <= now);
+            if (userCache.isEmpty()) {
+                renderCache.remove(userId);
+            }
+        }
+
+        if (renderCache.size() > MAX_USERS_IN_CACHE) {
+            List<Map.Entry<String, Map<String, CacheEntry>>> sortedUsers = new ArrayList<>(renderCache.entrySet());
+            sortedUsers.sort(Comparator.comparingLong(entry ->
+                entry.getValue().values().stream()
+                        .mapToLong(e -> e.expiresAt - USER_CACHE_TTL_MS)
+                        .max().orElse(Long.MIN_VALUE))
+            );
+            int toRemove = renderCache.size() - MAX_USERS_IN_CACHE;
+            for (int i = 0; i < toRemove; i++) {
+                renderCache.remove(sortedUsers.get(i).getKey());
+            }
+        }
+    }
+
+    public static void setupCanvasContext(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
+
+    public static void putCachedImage(String key, BufferedImage image) {
+        imageCache.put(key, new SoftReference<>(image));
+    }
+
+    public static <T> T getCachedRender(String userId, String key, Callable<T> renderFunction) throws Exception {
+        long now = System.currentTimeMillis();
+        Map<String, CacheEntry> userCache = renderCache.computeIfAbsent(userId, id -> new ConcurrentHashMap<>());
+        CacheEntry cached = userCache.get(key);
+
+        if (cached != null && cached.expiresAt > now) {
+            return (T) cached.value;
+        }
+
+        T result = renderFunction.call();
+        userCache.put(key, new CacheEntry(result, now + USER_CACHE_TTL_MS));
+        return result;
+    }
+
+    private static class CacheEntry {
+        Object value;
+        long expiresAt;
+
+        CacheEntry(Object value, long expiresAt) {
+            this.value = value;
+            this.expiresAt = expiresAt;
+        }
+    }
+
+    public static BufferedImage getTownhallImage(int townhallLevel) {
+        int townhallCapped = Math.min(17, townhallLevel);
+        return getCachedImage("Building_HV_Town_Hall_level_" + townhallCapped);
+    }
+}
