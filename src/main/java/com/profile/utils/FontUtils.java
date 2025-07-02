@@ -75,4 +75,8 @@ public class FontUtils {
         // Draw with final font size
         drawClashFont(g, message, x, y, fontSize, centered, Color.WHITE, 6);
     }
+
+    public static String formatNumberWithSpaces(int number) {
+        return String.format("%,d", number).replace(',', ' ');
+    }
 }

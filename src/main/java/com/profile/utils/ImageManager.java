@@ -2,6 +2,7 @@ package com.profile.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -203,5 +204,19 @@ public class ImageManager {
     public static BufferedImage getTownhallImage(int townhallLevel) {
         int townhallCapped = Math.min(17, townhallLevel);
         return getCachedImage("Building_HV_Town_Hall_level_" + townhallCapped);
+    }
+
+    public static BufferedImage getAchievementStarsImage(int achievementStars) {
+        return getCachedImage(achievementStars + "star");
+    }
+
+    public static void drawSignature(Graphics2D g, int x, int y, int outline) {
+        // Load image from resources
+        BufferedImage creatorLogo = getCachedImage("CreatorLogo");
+
+        g.drawImage(creatorLogo, x + 50, y + 75, 150, 150, null);
+
+        // Draw the text "Azer" with section title font
+        FontUtils.drawClashFont(g, "Azer", x + 250, y + 85, 150, false, Color.WHITE, outline);
     }
 }
