@@ -20,7 +20,7 @@ public class Profile {
     public League league;
     public LegendStatistics legendStatistics;
     public Achievement[] achievements;
-    public Troop[] troops;
-    public Spell[] spells;
-    public Hero[] heroes;
+    public Unit[] troops;
+    public Unit[] spells;
+    public Unit[] heroes;
 }

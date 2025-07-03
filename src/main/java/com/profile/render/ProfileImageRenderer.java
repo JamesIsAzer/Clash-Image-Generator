@@ -18,12 +18,10 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import javax.swing.text.NumberFormatter;
-
 public class ProfileImageRenderer {
 
     static {
-        FontLoader.loadCustomFonts();
+        FontUtils.loadCustomFonts();
     }
 
     public static BufferedImage render(Profile profile) throws IOException {
@@ -32,8 +30,8 @@ public class ProfileImageRenderer {
         int width = 3500;
         int height = hasLegendStats ? 2550 : 2125;
 
-        BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = canvas.createGraphics();
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
                 
         RenderingUtility.addRenderingHints(g);
 
@@ -48,7 +46,7 @@ public class ProfileImageRenderer {
         }
 
         g.dispose();
-        return canvas;
+        return image;
     }
 
     private static void drawNameCardSection(Graphics2D g, Profile profile, int x, int y) {
@@ -68,11 +66,11 @@ public class ProfileImageRenderer {
         );
 
         g.setPaint(gradient);
-        drawRoundedRect(g, x, y, width, height, radius);
+        RenderingUtility.drawRoundedRect(g, x, y, width, height, radius);
 
         g.setStroke(new BasicStroke(10));
         g.setColor(new Color(0x6A7798));
-        drawRoundedRectOutline(g, x, y, width, height, radius);
+        RenderingUtility.drawRoundedRectOutline(g, x, y, width, height, radius);
 
         drawDividerLine(g, x + paddingLeft + 1400, x + paddingLeft + 1400, y + paddingTop, y + paddingTop + 700, Color.decode("#5b5f80"), Color.decode("#abaec1"));
         drawDividerLine(g, x + paddingLeft + 2300, x + paddingLeft + 2300, y + paddingTop, y + paddingTop + 700, Color.decode("#5b5f80"), Color.decode("#abaec1"));
@@ -84,13 +82,7 @@ public class ProfileImageRenderer {
         drawSeasonalSection(g, profile, x, y, width, height, radius);
     }
 
-    private static void drawRoundedRect(Graphics2D g, int x, int y, int width, int height, int radius) {
-        g.fill(new RoundRectangle2D.Float(x, y, width, height, radius, radius));
-    }
-
-    private static void drawRoundedRectOutline(Graphics2D g, int x, int y, int width, int height, int radius) {
-        g.draw(new RoundRectangle2D.Float(x, y, width, height, radius, radius));
-    }
+    
 
     private static void drawDividerLine(Graphics2D g, int x1, int x2, int y1, int y2, Color colour1, Color colour2) {
         g.setStroke(new BasicStroke(8));
@@ -129,7 +121,7 @@ public class ProfileImageRenderer {
         }
 
         // Extract rank from legend statistics if present
-        Integer rank = profile.legendStatistics.currentSeason.rank;
+        Integer rank = null;
 
         if (profile.legendStatistics != null && profile.legendStatistics.currentSeason != null) {
             rank = profile.legendStatistics.currentSeason.rank;
@@ -322,7 +314,7 @@ public class ProfileImageRenderer {
         int height = 90;
 
         g.setColor(Color.decode("#2e2c62"));
-        drawRoundedRect(g, x, y, width, height, 50);
+        RenderingUtility.drawRoundedRect(g, x, y, width, height, 50);
 
         FontUtils.drawClashFont(g, message, x + (width / 2), y + (height / 2), 50, true, Color.WHITE, 6);
     }
@@ -520,7 +512,7 @@ public class ProfileImageRenderer {
         int radius = 50;
 
         // Draw rounded rectangle path
-        drawRoundedRect(g, x, y, width, height, radius);
+        RenderingUtility.drawRoundedRect(g, x, y, width, height, radius);
 
         // Create gradient fill
         Paint gradient = GradientManager.createOptimizedGradient(
