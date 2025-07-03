@@ -5,28 +5,14 @@ import com.profile.data.Unit;
 import com.profile.utils.ImageManager;
 import com.profile.utils.RenderingUtility;
 import com.profile.utils.BlurUtils;
-import com.profile.utils.DateUtils;
 import com.profile.utils.FontUtils;
 import com.profile.utils.GradientManager;
-import com.profile.data.Clan;
-import com.profile.data.League;
-import com.profile.data.LegendSeason;
-import com.profile.data.LegendStatistics;
-import com.profile.data.Achievement;
-
 import java.awt.*;
 import java.awt.color.ColorSpace;
-import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-
-import javax.imageio.ImageIO;
 
 public class TroopShowcaseImageRenderer {
 

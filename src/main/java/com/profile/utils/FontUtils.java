@@ -43,7 +43,6 @@ public class FontUtils {
     }
     
     public static void drawClashFont(Graphics2D g, String message, int x, int y, int fontSize, boolean centered, Color colour, int borderSize) {
-        // Set font (assumes "Clash" font is registered)
         g.setFont(new Font("Clash", Font.PLAIN, fontSize));
 
         FontMetrics metrics = g.getFontMetrics();
