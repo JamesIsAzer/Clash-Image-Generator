@@ -1,4 +1,4 @@
-IMAGE_NAME=clash-imageinator
+IMAGE_NAME=imageinator
 JAR_NAME=executable.jar
 PORT=8080
 
