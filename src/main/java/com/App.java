@@ -1,4 +1,4 @@
-package com.profile;
+package com;
 
 import com.profile.http.Interface;
 import com.profile.utils.ImageManager;
