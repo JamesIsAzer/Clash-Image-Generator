@@ -1,0 +1,10 @@
+.gradle
+build/
+!build/libs/executable.jar
+out/
+*.log
+*.class
+*.iml
+.idea
+.vscode
+*.DS_Store
