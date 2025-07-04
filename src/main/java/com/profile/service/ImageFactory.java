@@ -1,36 +1,38 @@
 package com.profile.service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.profile.service.imageGenerator.ImageGenerator;
-import com.profile.utils.Cache;
+
+import java.util.concurrent.TimeUnit;
 
 public class ImageFactory {
 
-    private static final long CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-    private static final Map<String, Cache<byte[]>> renderCache = new ConcurrentHashMap<>();
+    private static final Cache<String, byte[]> renderCache = Caffeine.newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .maximumSize(1000) // Optional: limit to avoid memory issues
+        .build();
 
     public static byte[] getCachedRender(
         String renderClass,
-        String tag, 
+        String tag,
         ImageGenerator<String> renderFunction
     ) throws Exception {
         String key = renderClass + "-" + tag;
 
-        Cache<byte[]> cached = renderCache.get(key);
-        long now = System.currentTimeMillis();
-
-        if (cached != null && cached.expiresAt() > now) {
-            return cached.value();
-        }
-
         try {
-            byte[] result = renderFunction.generateImage(tag);
-            renderCache.put(key, new Cache<>(result, now + CACHE_TTL_MS));
-            return result;
-        } catch (Exception e) {
-            System.err.println("Render function failed for key " + key + ": " + e.getMessage());
+            return renderCache.get(key, k -> {
+                try {
+                    return renderFunction.generateImage(tag);
+                } catch (Exception e) {
+                    System.err.println("Render function failed for key " + key + ": " + e.getMessage());
+                    throw new RuntimeException(e); // wrap to satisfy Caffeine's functional API
+                }
+            });
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof Exception) {
+                throw (Exception) e.getCause();
+            }
             throw e;
         }
     }

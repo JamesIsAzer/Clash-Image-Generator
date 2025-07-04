@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.profile.data.Profile;
+import com.profile.utils.exceptions.ProfileFetchException;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class ClashApiClient {
@@ -31,7 +33,8 @@ public class ClashApiClient {
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), Profile.class);
         } else {
-            throw new RuntimeException("Failed to fetch profile: " + response.statusCode() + " - " + response.body());
+            int status = response.statusCode();
+            throw new ProfileFetchException("Failed to fetch profile: " + ClashClientErrorCodes.getProfileErrorMessage(status), status);
         }
     }
 

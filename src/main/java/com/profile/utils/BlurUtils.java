@@ -10,11 +10,18 @@ import java.awt.image.Kernel;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 public class BlurUtils {
 
-    private static final Map<ShadowKey, BufferedImage> shadowCache = new ConcurrentHashMap<>();
-    
+    private static final Cache<ShadowKey, BufferedImage> shadowCache = Caffeine.newBuilder()
+        .maximumSize(100) // or however many you think is reasonable
+        .expireAfterAccess(10, TimeUnit.MINUTES) // optional
+        .build();
+        
     public static void drawDropShadow(Graphics2D g, int x, int y, int width, int height, int cornerRadius, float blurIntensity) {
         int blurRadius = (int)(cornerRadius * blurIntensity);  // blur size follows curvature
         int offsetX = 4;
@@ -22,7 +29,7 @@ public class BlurUtils {
 
         ShadowKey key = new ShadowKey(width, height, cornerRadius, blurRadius);
 
-        BufferedImage shadowImage = shadowCache.computeIfAbsent(key, k -> {
+        BufferedImage shadowImage = shadowCache.get(key, k -> {
             int paddedWidth = width + blurRadius * 4;
             int paddedHeight = height + blurRadius * 4;
 
@@ -33,17 +40,12 @@ public class BlurUtils {
             int shapeX = (paddedWidth - width) / 2;
             int shapeY = (paddedHeight - height) / 2;
 
-            gShadow.setColor(new Color(0, 0, 0, 100)); // semi-transparent
+            gShadow.setColor(new Color(0, 0, 0, 100));
             gShadow.fill(new RoundRectangle2D.Float(
-                shapeX,
-                shapeY,
-                width,
-                height,
-                cornerRadius,
-                cornerRadius
+                shapeX, shapeY, width, height, cornerRadius, cornerRadius
             ));
-
             gShadow.dispose();
+
             return blurImage(base, blurRadius);
         });
 

@@ -5,40 +5,33 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import java.awt.*;
 import java.util.List;
 
 public class ImageManager {
 
-    private static final int IMAGE_CACHE_LIMIT = 100;
-
-    private static final Map<String, SoftReference<BufferedImage>> imageCache = new LinkedHashMap<>(IMAGE_CACHE_LIMIT, 0.75f, true) {
-        protected boolean removeEldestEntry(Map.Entry<String, SoftReference<BufferedImage>> eldest) {
-            return size() > IMAGE_CACHE_LIMIT;
-        }
-    };
+    private static final Cache<String, BufferedImage> imageCache = Caffeine.newBuilder()
+        .maximumSize(100)
+        .softValues()
+        .build();
 
     private static boolean imagesPreloaded = false;
 
     public static BufferedImage getCachedImage(String key) {
-        SoftReference<BufferedImage> ref = imageCache.get(key);
-        BufferedImage img = (ref != null) ? ref.get() : null;
+        return imageCache.get(key, k -> loadImage(k));
+    }
 
-        if (img == null) {
-            img = loadImage(key);
-            if (img != null) {
-                imageCache.put(key, new SoftReference<>(img));
-            }
-        }
-
-        return img;
+    public static void putCachedImage(String key, BufferedImage image) {
+        imageCache.put(key, image);
     }
 
     public static BufferedImage loadImageFromURL(String imageUrl) {
@@ -85,32 +78,35 @@ public class ImageManager {
         List<String> uniqueList = new ArrayList<>(uniqueKeys);
         int batchSize = 10;
 
-        for (int i = 0; i < uniqueList.size(); i += batchSize) {
-            List<String> batch = uniqueList.subList(i, Math.min(i + batchSize, uniqueList.size()));
+        ExecutorService executor = Executors.newFixedThreadPool(batchSize);
 
-            ExecutorService executor = Executors.newFixedThreadPool(batchSize);
-            List<Callable<Void>> tasks = new ArrayList<>();
+        try {
+            for (int i = 0; i < uniqueList.size(); i += batchSize) {
+                List<String> batch = uniqueList.subList(i, Math.min(i + batchSize, uniqueList.size()));
 
-            for (String key : batch) {
-                tasks.add(() -> {
-                    getCachedImage(key);
-                    return null;
-                });
+                List<Callable<Void>> tasks = new ArrayList<>();
+                for (String key : batch) {
+                    tasks.add(() -> {
+                        getCachedImage(key);
+                        return null;
+                    });
+                }
+
+                try {
+                    executor.invokeAll(tasks);
+                } catch (Exception e) {
+                    System.err.println("Failed to preload batch " + i + "-" + (i + batchSize) + ":");
+                    e.printStackTrace();
+                }
+
+                // Optional small delay between batches to avoid memory spikes
+                if (i + batchSize < uniqueList.size()) {
+                    Thread.sleep(100);
+                }
             }
-
-            try {
-                executor.invokeAll(tasks);
-            } catch (Exception e) {
-                System.err.println("Failed to preload batch " + i + "-" + (i + batchSize) + ":");
-                e.printStackTrace();
-            } finally {
-                executor.shutdown();
-            }
-
-            // Optional small delay between batches to avoid memory spikes
-            if (i + batchSize < uniqueList.size()) {
-                Thread.sleep(100);
-            }
+        } finally {
+            executor.shutdown();
+            executor.awaitTermination(1, TimeUnit.MINUTES); // Ensure graceful shutdown
         }
     }
 
@@ -135,10 +131,6 @@ public class ImageManager {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    }
-
-    public static void putCachedImage(String key, BufferedImage image) {
-        imageCache.put(key, new SoftReference<>(image));
     }
 
     public static BufferedImage getTownhallImage(int townhallLevel) {

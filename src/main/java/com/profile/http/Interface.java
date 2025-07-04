@@ -9,6 +9,7 @@ public class Interface {
 
         path("/render", () -> {
             ProfileEndpoint.register();
+            ProfileExceptions.register();
         });
     }
 }
