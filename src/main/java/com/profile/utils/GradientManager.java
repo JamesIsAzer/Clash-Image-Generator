@@ -1,21 +1,14 @@
 package com.profile.utils;
 
-import java.util.*;
-import java.util.concurrent.*;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.awt.*;
 
 public class GradientManager {
-    private static final int GRADIENT_CACHE_LIMIT = 50;
- 
     private static final Cache<String, Paint> gradientCache = Caffeine.newBuilder()
         .maximumSize(50)
         .build();
-
-    private static final Map<String, Long> gradientAccessOrder = new LinkedHashMap<>();
 
     public static Paint createOptimizedGradient(
         String key, 

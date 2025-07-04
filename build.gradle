@@ -18,6 +18,19 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 
+application {
+    mainClass = 'com.App'
+}
+
+shadowJar {
+    archiveBaseName.set('executable')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
 tasks.register("generateImageIndex") {
     def imageDirPath = layout.projectDirectory.dir("src/main/resources/images")
     def indexFilePath = layout.projectDirectory.file("src/main/resources/cache/images.txt")
@@ -43,18 +56,5 @@ tasks.register("generateImageIndex") {
 
         indexFile.text = lines.join("\n")
         println "✅ index.txt generated with ${lines.size()} image(s)."
-    }
-}
-
-application {
-    mainClass = 'com.App'
-}
-
-shadowJar {
-    archiveBaseName.set('executable')
-    archiveClassifier.set('')
-    archiveVersion.set('')
-    manifest {
-        attributes 'Main-Class': application.mainClass.get()
     }
 }
