@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY build/libs/executable.jar app.jar
 
+COPY .env .env
+
 EXPOSE 8080
 
 # Run the JAR
