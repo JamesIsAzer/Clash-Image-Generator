@@ -13,17 +13,18 @@ public class ImageFactory {
         .maximumSize(1000) // Optional: limit to avoid memory issues
         .build();
 
-    public static byte[] getCachedRender(
+    public static <U> byte[] getCachedRender(
         String renderClass,
         String tag,
-        ImageGenerator<String> renderFunction
+        U data,
+        ImageGenerator<U> renderFunction
     ) throws Exception {
         String key = renderClass + "-" + tag;
 
         try {
             return renderCache.get(key, k -> {
                 try {
-                    return renderFunction.generateImage(tag);
+                    return renderFunction.generateImage(data);
                 } catch (Exception e) {
                     System.err.println("Render function failed for key " + key + ": " + e.getMessage());
                     throw new RuntimeException(e); // wrap to satisfy Caffeine's functional API
