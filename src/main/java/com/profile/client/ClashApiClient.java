@@ -5,6 +5,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.App;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.profile.data.Profile;
 import com.profile.utils.exceptions.ProfileFetchException;
@@ -17,7 +21,11 @@ public class ClashApiClient {
 
     private static final Dotenv dotenv = Dotenv.load();
 
+    private static final Logger logger = LoggerFactory.getLogger(ClashApiClient.class);
+
     public static Profile fetchProfile(String tag) throws Exception {
+        logger.info(String.format("Fetching Clash API data for #%s", tag));
+
         HttpClient client = HttpClient.newHttpClient();
 
         String apiUrl = "https://api.clashofclans.com/v1/players/%23" + tag;        
@@ -34,6 +42,8 @@ public class ClashApiClient {
             return objectMapper.readValue(response.body(), Profile.class);
         } else {
             int status = response.statusCode();
+            logger.error(String.format("Error %d when fetching Clash API for tag #%s", status, tag));
+
             throw new ProfileFetchException("Failed to fetch profile: " + ClashClientErrorCodes.getProfileErrorMessage(status), status);
         }
     }

@@ -1,5 +1,6 @@
 package com.profile.render;
 
+import com.profile.client.ClashApiClient;
 import com.profile.data.Profile;
 import com.profile.data.Unit;
 import com.profile.utils.ImageManager;
@@ -14,13 +15,20 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TroopShowcaseImageRenderer {
 
     static {
         FontUtils.loadCustomFonts();
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(TroopShowcaseImageRenderer.class);
+
     public static BufferedImage render(Profile profile) throws IOException {
+        logger.info(String.format("Generating troop showcase image for #%s", profile.tag));
+
         int width = 2950;
         int height = 2050;
 

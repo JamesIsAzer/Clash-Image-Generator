@@ -9,13 +9,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class XpImageRenderer {
     
     static {
         FontUtils.loadCustomFonts();
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(TroopShowcaseImageRenderer.class);
+
     public static BufferedImage render(Profile profile) throws IOException {
+        logger.info(String.format("Generating xp image for #%s", profile.tag));
+
         int width = 214;
         int height = 214;
 

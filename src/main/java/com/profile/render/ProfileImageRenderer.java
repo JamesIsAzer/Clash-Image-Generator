@@ -10,6 +10,7 @@ import com.profile.data.Clan;
 import com.profile.data.League;
 import com.profile.data.LegendSeason;
 import com.profile.data.LegendStatistics;
+import com.profile.client.ClashApiClient;
 import com.profile.data.Achievement;
 
 import java.awt.*;
@@ -18,13 +19,19 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ProfileImageRenderer {
 
     static {
         FontUtils.loadCustomFonts();
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(ProfileImageRenderer.class);
+
     public static BufferedImage render(Profile profile) throws IOException {
+        logger.info(String.format("Generating profile image for #%s", profile.tag));
         boolean hasLegendStats = profile.legendStatistics != null && profile.legendStatistics.bestSeason != null;
 
         int width = 3500;
@@ -389,7 +396,7 @@ public class ProfileImageRenderer {
             }
 
             if (rank != null) {
-                FontUtils.clashFontScaled(g, rank, x + 125, y + 220, 170, 140, true);
+                FontUtils.clashFontScaled(g, rank, x + 125, y + 220, 170, 180, true);
             }
 
             FontUtils.drawClashFont(g,type + ": " + DateUtils.formatYearMonth(date), x + 275, y + 125, 50, false, Color.WHITE, 6);
