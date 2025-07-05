@@ -6,6 +6,8 @@ COPY build/libs/executable.jar app.jar
 
 COPY .env .env
 
+RUN mkdir -p logs && chmod 755 logs
+
 EXPOSE 8080
 
 # Run the JAR
