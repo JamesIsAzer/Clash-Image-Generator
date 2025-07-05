@@ -8,7 +8,6 @@ import java.net.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.App;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.profile.data.Profile;
 import com.profile.utils.exceptions.ProfileFetchException;

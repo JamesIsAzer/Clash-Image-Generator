@@ -10,7 +10,7 @@ public class ImageFactory {
 
     private static final Cache<String, byte[]> renderCache = Caffeine.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
-        .maximumSize(1000) // Optional: limit to avoid memory issues
+        .maximumSize(100)
         .build();
 
     public static <U> byte[] getCachedRender(
@@ -27,7 +27,7 @@ public class ImageFactory {
                     return renderFunction.generateImage(data);
                 } catch (Exception e) {
                     System.err.println("Render function failed for key " + key + ": " + e.getMessage());
-                    throw new RuntimeException(e); // wrap to satisfy Caffeine's functional API
+                    throw new RuntimeException(e);
                 }
             });
         } catch (RuntimeException e) {
