@@ -9,7 +9,8 @@ build: jar
 	docker build -t $(IMAGE_NAME) .
 
 run:
-	docker run -d -p $(PORT):$(PORT) --name $(IMAGE_NAME) $(IMAGE_NAME)
+	mkdir -p logs
+	docker run -d -p $(PORT):$(PORT) --name $(IMAGE_NAME) -v $(PWD)/logs:/app/logs $(IMAGE_NAME)
 
 stop:
 	docker rm -f $(IMAGE_NAME)
