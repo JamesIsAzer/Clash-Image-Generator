@@ -31,7 +31,7 @@ public class ProfileImageRenderer {
     private static final Logger logger = LoggerFactory.getLogger(ProfileImageRenderer.class);
 
     public static BufferedImage render(Profile profile) throws IOException {
-        logger.info(String.format("Generating profile image for #%s", profile.tag));
+        logger.info(String.format("Generating profile image for %s", profile.tag));
         boolean hasLegendStats = profile.legendStatistics != null && profile.legendStatistics.bestSeason != null;
 
         int width = 3500;

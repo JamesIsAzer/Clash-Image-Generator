@@ -27,7 +27,7 @@ public class TroopShowcaseImageRenderer {
     private static final Logger logger = LoggerFactory.getLogger(TroopShowcaseImageRenderer.class);
 
     public static BufferedImage render(Profile profile) throws IOException {
-        logger.info(String.format("Generating troop showcase image for #%s", profile.tag));
+        logger.info(String.format("Generating troop showcase image for %s", profile.tag));
 
         int width = 2950;
         int height = 2050;
