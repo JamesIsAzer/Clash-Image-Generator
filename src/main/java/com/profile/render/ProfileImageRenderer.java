@@ -10,7 +10,6 @@ import com.profile.data.Clan;
 import com.profile.data.League;
 import com.profile.data.LegendSeason;
 import com.profile.data.LegendStatistics;
-import com.profile.client.ClashApiClient;
 import com.profile.data.Achievement;
 
 import java.awt.*;

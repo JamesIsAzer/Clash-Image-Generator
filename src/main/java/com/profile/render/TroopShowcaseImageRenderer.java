@@ -1,6 +1,5 @@
 package com.profile.render;
 
-import com.profile.client.ClashApiClient;
 import com.profile.data.Profile;
 import com.profile.data.Unit;
 import com.profile.utils.ImageManager;

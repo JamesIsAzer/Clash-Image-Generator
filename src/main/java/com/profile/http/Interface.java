@@ -8,6 +8,10 @@ public class Interface {
         port(port);
 
         before((req, res) -> {
+            if (req.uri() == null || req.uri().isEmpty()) {
+                halt(400, "Invalid request URI");
+            }
+            
             req.session(false);
         });
 
