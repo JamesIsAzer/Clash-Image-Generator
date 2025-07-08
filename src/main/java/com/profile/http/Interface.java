@@ -5,7 +5,7 @@ import static spark.Spark.*;
 public class Interface {
 
     public static void start(int port) {
-        ipAddress("127.0.0.1");
+        ipAddress("0.0.0.0");
         port(port);
 
         before((req, res) -> {
