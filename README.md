@@ -29,7 +29,7 @@ The plan next is to add clan related images and hopefully expand to builder base
 # How to use
 
 - `make build` to generate the jar run the docker build
-- `make run` starts the docker container in detached mode on port 8080
+- `make run` starts the docker container in detached mode on port 34827
 - `make stop` to stop the running container (and the microservice)
 
 # Authors

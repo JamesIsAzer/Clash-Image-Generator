@@ -1,6 +1,6 @@
 IMAGE_NAME=imageinator
 JAR_NAME=executable.jar
-PORT=8080
+PORT=34827
 
 jar:
 	./gradlew shadowJar

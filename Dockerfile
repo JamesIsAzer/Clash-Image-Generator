@@ -8,7 +8,7 @@ COPY .env .env
 
 RUN mkdir -p logs && chmod 755 logs
 
-EXPOSE 8080
+EXPOSE 34827
 
 # Run the JAR
 ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]

@@ -11,7 +11,7 @@ public class App {
 
     public static void main(String[] args) {
         logger.info("Starting app...");
-        Interface.start(8080);
+        Interface.start(34827);
         ImageManager.preloadAllImages();
         logger.info("App started successfully!");
     }
